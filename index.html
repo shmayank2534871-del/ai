@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Prompt Architect (Gemini Edition)</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        /* ---=== CSS STYLES ===--- */
+        :root {
+            --bg-color: #121212;
+            --surface-color: #1E1E1E;
+            --primary-text-color: #E0E0E0;
+            --secondary-text-color: #B0B0B0;
+            --border-color: #333333;
+            --accent-gradient: linear-gradient(90deg, #8A2BE2, #4169E1);
+            --accent-color-start: #8A2BE2;
+            --accent-color-end: #4169E1;
+            --success-color: #4CAF50;
+            --error-color: #F44336;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--primary-text-color);
+            line-height: 1.6;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container { width: 100%; max-width: 1400px; }
+
+        header { text-align: center; margin-bottom: 2rem; }
+        header h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        header p {
+            font-size: 1.1rem;
+            color: var(--secondary-text-color);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .api-key-section {
+            background-color: var(--surface-color);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+        .api-key-section h2 { font-size: 1.2rem; margin-bottom: 1rem; }
+        .api-key-input-wrapper { display: flex; align-items: center; gap: 0.5rem; }
+        #api-key-input {
+            flex-grow: 1;
+            padding: 0.8rem 1rem;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--primary-text-color);
+            font-size: 1rem;
+        }
+        #api-key-toggle { background: none; border: none; color: var(--secondary-text-color); cursor: pointer; font-size: 1.2rem; }
+
+        .generator-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .form-container, .output-container {
+            background-color: var(--surface-color);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .form-container h2, .output-container h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--accent-color-start);
+            padding-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; font-weight: 500; margin-bottom: 0.5rem; }
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--primary-text-color);
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 150px;
+        }
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent-color-end);
+            box-shadow: 0 0 10px rgba(65, 105, 225, 0.5);
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+            background: var(--accent-gradient);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .generate-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(138, 43, 226, 0.4); }
+        .generate-btn:disabled { background: var(--border-color); cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .result-wrapper { position: relative; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; height: calc(100% - 60px); }
+        #prompt-output {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            height: 100%;
+            overflow-y: auto;
+            color: var(--secondary-text-color);
+            font-family: 'monospace', 'Courier New';
+        }
+        #prompt-output .placeholder, #prompt-output .error { font-style: italic; }
+        #prompt-output .error { color: var(--error-color); }
+        
+        .copy-btn { position: absolute; top: 1rem; right: 1rem; background: var(--surface-color); border: 1px solid var(--border-color); color: var(--primary-text-color); padding: 0.5rem 0.8rem; border-radius: 6px; cursor: pointer; transition: all 0.3s ease; }
+        .copy-btn:hover { background-color: var(--accent-color-end); color: white; }
+        .copy-btn.copied { background-color: var(--success-color); color: white; }
+        
+        /* Spinner Animation */
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: var(--accent-color-end);
+            animation: spin 1s ease infinite;
+            margin: 2rem auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        @media (max-width: 1024px) { .generator-wrapper { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { body { padding: 1rem; } header h1 { font-size: 2.2rem; } }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>AI Prompt Architect <span style="font-size: 1.5rem;">(Gemini Edition)</span></h1>
+            <p>Transform your simple ideas into powerful, detailed prompts with AI. Provide your Gemini API key and a core idea, and let the Architect do the rest.</p>
+        </header>
+
+        <section class="api-key-section">
+            <h2><i class="fas fa-key"></i> Your Google Gemini API Key</h2>
+            <div class="api-key-input-wrapper">
+                <input type="password" id="api-key-input" placeholder="Enter your Gemini API Key here...">
+                <button id="api-key-toggle" title="Show/Hide API Key"><i class="fas fa-eye"></i></button>
+            </div>
+             <small style="color: var(--secondary-text-color); margin-top: 0.5rem; display: block;">Don't have a key? <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: var(--accent-color-end);">Get one from Google AI Studio</a></small>
+        </section>
+
+        <main class="generator-wrapper">
+            <section class="form-container">
+                <h2>1. Enter Your Idea</h2>
+                <form id="prompt-form">
+                    <div class="form-group">
+                        <label for="core-idea">Describe what you want to create or achieve. Be as simple or as detailed as you like.</label>
+                        <textarea id="core-idea" name="core-idea" rows="10" placeholder="e.g., A Python script to organize my download folder...&#10;e.g., A marketing campaign for a new brand of coffee...&#10;e.g., A short sci-fi story about a friendly robot who discovers music..." required></textarea>
+                    </div>
+                    <button type="submit" class="generate-btn" id="generate-btn">
+                        <i class="fas fa-bolt"></i>
+                        <span>Generate Prompt</span>
+                    </button>
+                </form>
+            </section>
+
+            <section class="output-container">
+                <h2>2. Your AI-Generated Prompt</h2>
+                <div class="result-wrapper">
+                    <button class="copy-btn" id="copy-btn" title="Copy to clipboard">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                    <div id="prompt-output">
+                        <span class="placeholder">Your highly-detailed AI prompt will appear here...</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // ---=== JAVASCRIPT LOGIC ===---
+        document.addEventListener('DOMContentLoaded', () => {
+            const promptForm = document.getElementById('prompt-form');
+            const outputElement = document.getElementById('prompt-output');
+            const copyBtn = document.getElementById('copy-btn');
+            const apiKeyInput = document.getElementById('api-key-input');
+            const apiKeyToggle = document.getElementById('api-key-toggle');
+            const generateBtn = document.getElementById('generate-btn');
+            const generateBtnText = generateBtn.querySelector('span');
+
+            const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=';
+
+            // --- API Key Visibility Toggle ---
+            apiKeyToggle.addEventListener('click', () => {
+                const isPassword = apiKeyInput.type === 'password';
+                apiKeyInput.type = isPassword ? 'text' : 'password';
+                apiKeyToggle.innerHTML = isPassword ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
+            });
+
+            // --- Form Submission Handler ---
+            promptForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const apiKey = apiKeyInput.value.trim();
+                const coreIdea = document.getElementById('core-idea').value.trim();
+
+                if (!apiKey) {
+                    alert('Please enter your Gemini API Key.');
+                    return;
+                }
+                if (!coreIdea) {
+                    alert('Please enter your core idea.');
+                    return;
+                }
+
+                // --- UI State: Loading ---
+                generateBtn.disabled = true;
+                generateBtnText.textContent = 'Generating...';
+                outputElement.innerHTML = '<div class="spinner"></div>';
+                copyBtn.style.display = 'none';
+
+                // --- Construct the Meta-Prompt for Gemini ---
+                const metaPrompt = `
+                    You are an expert AI Prompt Engineer named 'Prompt Architect'. Your sole purpose is to take a user's simple idea and transform it into a comprehensive, detailed, and structured prompt that is optimized for any advanced AI model (like GPT-4, Claude, or Gemini itself).
+
+                    **Your Task:**
+                    Read the user's 'Core Idea' provided below. Then, generate a complete, structured prompt that includes the following sections. Extrapolate and infer necessary details to make the prompt as effective as possible.
+
+                    **Prompt Structure to Generate:**
+                    1.  **ROLE & PERSONA:** Define the optimal persona for the AI to adopt.
+                    2.  **CONTEXT:** Provide detailed background and context for the task.
+                    3.  **PRIMARY GOAL:** Clearly state the main objective based on the user's idea.
+                    4.  **DETAILED TASK STEPS:** Create a logical, step-by-step plan for the AI to follow.
+                    5.  **OUTPUT FORMAT & STRUCTURE:** Specify exactly how the output should be formatted (e.g., code blocks, markdown, JSON).
+                    6.  **CONSTRAINTS & RULES:** List any important limitations or rules the AI must follow.
+
+                    **User's Core Idea:**
+                    "${coreIdea}"
+
+                    **Instructions:**
+                    - Fill out each section with rich, relevant details. Be creative but logical.
+                    - For a coding idea, infer common requirements like error handling, comments, and efficiency.
+                    - For a creative idea, infer elements like tone, style, and narrative structure.
+                    - The final output should be ONLY the generated prompt text in Markdown format, starting with "## MASTER PROMPT ##". Do not include any of your own conversational text, introductions, or apologies.
+                `;
+
+                // --- API Call ---
+                try {
+                    const response = await fetch(`${API_URL}${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: metaPrompt }] }]
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error.message || `HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.candidates && data.candidates.length > 0) {
+                        const resultText = data.candidates[0].content.parts[0].text;
+                        // Use textContent to prevent HTML injection
+                        outputElement.textContent = resultText;
+                    } else {
+                        throw new Error("No content received from the API. The response might be blocked due to safety settings.");
+                    }
+
+                } catch (error) {
+                    console.error('API Error:', error);
+                    outputElement.innerHTML = `<span class="error">An error occurred: ${error.message}. Please check your API key, network connection, and Google's safety settings for the key.</span>`;
+                } finally {
+                    // --- UI State: Reset ---
+                    generateBtn.disabled = false;
+                    generateBtnText.textContent = 'Generate Prompt';
+                    copyBtn.style.display = 'block';
+                }
+            });
+            
+            // --- Copy Button Functionality ---
+            copyBtn.addEventListener('click', () => {
+                const textToCopy = outputElement.textContent;
+                
+                if(textToCopy && !outputElement.querySelector('.placeholder') && !outputElement.querySelector('.spinner')) {
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        const originalText = copyBtn.innerHTML;
+                        copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                        copyBtn.classList.add('copied');
+                        setTimeout(() => {
+                           copyBtn.innerHTML = originalText;
+                           copyBtn.classList.remove('copied');
+                        }, 2000);
+                    }).catch(err => console.error('Failed to copy: ', err));
+                }
+            });
+        });
+    </script>
+</body>
+</html>
