@@ -1,0 +1,17 @@
+# robots.txt for https://mydomain.github.io/
+
+User-agent: *
+Allow: /
+
+# Allow search engines (Google, Bing, etc.) to crawl everything
+# Adsterra ads are allowed by default since all pages are open
+
+# Disallow unnecessary files or folders (none for GitHub Pages)
+# Disallow: /private/
+# Disallow: /admin/
+
+# Sitemap location (important for SEO)
+Sitemap: https://shmayank2534871-del.github.io/ai/sitemap.xml
+
+# Crawl-delay helps reduce server load (optional)
+Crawl-delay: 5
